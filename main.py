@@ -3,6 +3,7 @@ import cv2
 
 from utils import entropy, psnr
 from utils_epub import read_epub_text
+from utils_text import normalize_text
 
 # Text compression
 from text.huffman import huffman_encode, huffman_decode
@@ -25,7 +26,7 @@ def text_mode():
         print("❌ File not found.")
         return
 
-    # Handle TXT vs EPUB
+    # Read TXT or EPUB
     if path.lower().endswith(".epub"):
         print("📘 EPUB detected. Extracting text...")
         text = read_epub_text(path)
@@ -33,24 +34,28 @@ def text_mode():
         text = open(path, encoding="utf-8", errors="ignore").read()
 
     print("\n--- TEXT COMPRESSION ---")
-    print("Text length:", len(text))
-    print("Entropy:", round(entropy(text), 4))
+    print("Original text length:", len(text))
+    print("Entropy (raw):", round(entropy(text), 4))
 
-    # Huffman
-    encoded, tree = huffman_encode(text)
+    # Normalize for LZW safety
+    text_norm = normalize_text(text)
+    print("Normalized text length:", len(text_norm))
+
+    # Huffman Coding
+    encoded, tree = huffman_encode(text_norm)
     decoded = huffman_decode(encoded, tree)
 
     print("\n[Huffman Coding]")
     print("Compressed size:", len(encoded) // 8, "bytes")
-    print("Decoded correct:", decoded == text)
+    print("Decoded correct:", decoded == text_norm)
 
-    # LZW
-    lzw_encoded = lzw_encode(text)
+    # LZW Compression
+    lzw_encoded = lzw_encode(text_norm)
     lzw_decoded = lzw_decode(lzw_encoded)
 
     print("\n[LZW Compression]")
     print("Compressed codes:", len(lzw_encoded))
-    print("Decoded correct:", lzw_decoded == text)
+    print("Decoded correct:", lzw_decoded == text_norm)
 
 
 # ===============================
@@ -89,7 +94,7 @@ def video_mode():
     frames = compress_video(path)
 
     print("Frames processed:", len(frames))
-    print("Compression method: Frame-based DCT (grayscale)")
+    print("Method: Frame-based grayscale DCT compression")
 
 
 # ===============================
