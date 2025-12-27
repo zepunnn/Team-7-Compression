@@ -105,9 +105,22 @@ Team-7-Compression/
 │   ├── video_compression.py
 │
 ├── dataset/
+│   ├── pg11-images-3.epub
+│   ├── pg2701-images-3.epub
 │   ├── pg77546-images-3.epub
-│   ├── image.png
-│   └── video.mp4
+│   ├── image1.jpg
+│   ├── image2.jpg
+│   ├── image3.jpg
+│   ├── kodim01.png
+│   ├── kodim02.png
+│   ├── kodim16.png
+│   ├── kodim19.png
+│   ├── kodim21.png
+│   ├── kodim22.png
+│   ├── kodim23.png
+│   ├── berubah.mp4
+│   ├── malumalu.mp4
+│   └── kachuusha.mp4
 ```
 
 ---
