@@ -4,101 +4,127 @@ import cv2
 from utils import entropy, psnr
 from utils_epub import read_epub_text
 from utils_text import normalize_text
+from utils_results import ensure_dir, write_log, timestamp
 
-# Text compression
+# Text
 from text.huffman import huffman_encode, huffman_decode
 from text.lzw import lzw_encode, lzw_decode
 
-# Image compression
+# Image
 from image.dct_image import compress_image, decompress_image
 
-# Video compression
+# Video
 from video.video_compression import compress_video
 
 
 # ===============================
-# TEMA 1 – TEXT COMPRESSION
+# TEMA 1 – TEXT
 # ===============================
 def text_mode():
     path = input("Enter text file path (.txt / .epub): ").strip()
-
     if not os.path.exists(path):
         print("❌ File not found.")
         return
 
-    # Read TXT or EPUB
+    ensure_dir("results/text")
+
     if path.lower().endswith(".epub"):
         print("📘 EPUB detected. Extracting text...")
         text = read_epub_text(path)
     else:
         text = open(path, encoding="utf-8", errors="ignore").read()
 
-    print("\n--- TEXT COMPRESSION ---")
-    print("Original text length:", len(text))
-    print("Entropy (raw):", round(entropy(text), 4))
-
-    # Normalize for LZW safety
+    ent = entropy(text)
     text_norm = normalize_text(text)
-    print("Normalized text length:", len(text_norm))
 
-    # Huffman Coding
+    # Huffman
     encoded, tree = huffman_encode(text_norm)
     decoded = huffman_decode(encoded, tree)
 
-    print("\n[Huffman Coding]")
-    print("Compressed size:", len(encoded) // 8, "bytes")
-    print("Decoded correct:", decoded == text_norm)
+    with open("results/text/huffman.bin", "w") as f:
+        f.write(encoded)
 
-    # LZW Compression
+    # LZW
     lzw_encoded = lzw_encode(text_norm)
     lzw_decoded = lzw_decode(lzw_encoded)
 
-    print("\n[LZW Compression]")
-    print("Compressed codes:", len(lzw_encoded))
-    print("Decoded correct:", lzw_decoded == text_norm)
+    with open("results/text/lzw.txt", "w") as f:
+        f.write(" ".join(map(str, lzw_encoded)))
+
+    log = (
+        f"[{timestamp()}]\n"
+        f"Dataset: {path}\n"
+        f"Entropy: {ent:.4f}\n"
+        f"Huffman size: {len(encoded)//8} bytes\n"
+        f"LZW codes: {len(lzw_encoded)}\n"
+        f"Huffman OK: {decoded == text_norm}\n"
+        f"LZW OK: {lzw_decoded == text_norm}\n"
+        f"-------------------------"
+    )
+    write_log("results/text/log.txt", log)
+
+    print("✅ Text results saved to results/text/")
 
 
 # ===============================
-# TEMA 2 – IMAGE COMPRESSION
+# TEMA 2 – IMAGE
 # ===============================
 def image_mode():
     path = input("Enter image path (.png / .jpg): ").strip()
-
     if not os.path.exists(path):
         print("❌ File not found.")
         return
 
-    print("\n--- IMAGE COMPRESSION ---")
-    blocks, shape = compress_image(path)
-    reconstructed = decompress_image(blocks, shape)
+    ensure_dir("results/image")
+
+    blocks, padded_shape, original_shape = compress_image(path)
+    reconstructed = decompress_image(blocks, padded_shape, original_shape)
 
     original = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     value = psnr(original, reconstructed)
 
-    print("Image shape:", original.shape)
-    print("Total DCT blocks:", len(blocks))
-    print("PSNR:", round(value, 2), "dB")
+    cv2.imwrite("results/image/reconstructed.png", reconstructed)
+
+    log = (
+        f"[{timestamp()}]\n"
+        f"Dataset: {path}\n"
+        f"Original shape: {original.shape}\n"
+        f"DCT blocks: {len(blocks)}\n"
+        f"PSNR: {value:.2f} dB\n"
+        f"-------------------------"
+    )
+    write_log("results/image/log.txt", log)
+
+    print("✅ Image results saved to results/image/")
 
 
 # ===============================
-# TEMA 3 – VIDEO COMPRESSION
+# TEMA 3 – VIDEO
 # ===============================
 def video_mode():
     path = input("Enter video path (.mp4): ").strip()
-
     if not os.path.exists(path):
         print("❌ File not found.")
         return
 
-    print("\n--- VIDEO COMPRESSION ---")
+    ensure_dir("results/video")
+
     frames = compress_video(path)
 
-    print("Frames processed:", len(frames))
-    print("Method: Frame-based grayscale DCT compression")
+    log = (
+        f"[{timestamp()}]\n"
+        f"Dataset: {path}\n"
+        f"Frames processed: {len(frames)}\n"
+        f"Method: Frame-based DCT (grayscale)\n"
+        f"-------------------------"
+    )
+    write_log("results/video/log.txt", log)
+
+    print("✅ Video results saved to results/video/")
 
 
 # ===============================
-# MAIN MENU
+# MAIN
 # ===============================
 def main():
     print("\n=== Coding & Compression Final Project ===")
