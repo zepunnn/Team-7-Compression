@@ -34,7 +34,11 @@ Each method supports both **encoding** and **decoding** to ensure lossless recon
 ```
 Team-7-Compression/
 │
+├── LICENSE
+├── README.md
 ├── utils.py
+├── utils_epub.py
+├── utils_text.py
 ├── main.py
 │
 ├── text/
@@ -48,7 +52,7 @@ Team-7-Compression/
 │   ├── video_compression.py
 │
 ├── dataset/
-│   ├── text.txt
+│   ├── pg77546-images-3.epub
 │   ├── image.png
 │   └── video.mp4
 ```
