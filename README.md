@@ -2,30 +2,82 @@
 
 ## Overview
 
-This project was developed as part of the **Coding and Compression** course. The objective of this assignment is to implement and evaluate several **lossless data compression algorithms** applied to textual documents. The project focuses on practical implementation, performance comparison, and understanding the trade-offs between compression efficiency and computational cost.
+This project was developed as part of the **Coding and Compression** course. The objective of this assignment is to **implement, evaluate, and analyze data compression techniques** applied to **text, image, and video data**.
 
-The system is implemented using **Python** and supports multiple compression techniques based on entropy coding and dictionary-based methods.
+The project emphasizes **algorithmic correctness, performance evaluation, and trade-off analysis** between compression efficiency, data quality, and computational cost.  
+All implementations are written in **pure Python** for educational purposes.
 
 ---
 
 ## Objectives
 
-* Implement lossless data compression algorithms
-* Compare compression performance across different methods
-* Analyze compression ratio, entropy, and processing time
-* Demonstrate practical applications of coding and compression theory
+- Implement data compression algorithms for different data types
+- Analyze compression performance using quantitative metrics
+- Compare efficiency, quality, and computational cost
+- Demonstrate practical applications of coding and compression theory
+- Provide reproducible experimental results and analysis
 
 ---
 
-## Implemented Methods
+## Compression Themes & Implemented Methods
 
-The following compression techniques are implemented in this project:
+### 📄 Text Compression (Lossless)
+- **Huffman Coding** (Entropy-based compression)
+- **LZW (Lempel–Ziv–Welch)** (Dictionary-based compression)
 
-* **Huffman Coding** (Entropy Coding)
-* **LZW (Lempel–Ziv–Welch)** (Dictionary-Based Compression)
-* **Shannon–Fano Coding** *(optional / comparative method)*
+Both methods support **encoding and decoding** to ensure **lossless reconstruction** of the original text.  
+Text input supports **`.txt` and `.epub`** formats.
 
-Each method supports both **encoding** and **decoding** to ensure lossless reconstruction of the original data.
+---
+
+### 🖼️ Image Compression (Lossy)
+- **Block-based DCT (Discrete Cosine Transform)**
+
+Images are converted to grayscale and compressed using **8×8 DCT blocks**, following the basic principle of JPEG compression.  
+Reconstructed images are evaluated to analyze quality degradation.
+
+---
+
+### 🎥 Video Compression (Lossy, Frame-Based)
+- **Frame-level DCT Compression**
+
+Videos are processed frame-by-frame:
+- Each frame is converted to grayscale
+- Block-based DCT is applied
+- Optional frame skipping is used to reduce computational cost
+
+This approach focuses on **spatial redundancy reduction** without motion compensation.
+
+---
+
+## Evaluation Metrics
+
+### Text Compression
+- Source Entropy
+- Compression Ratio
+- File Size Before & After Compression
+- Encoding Time
+- Decoding Time
+- Trade-off between compression efficiency and computational cost
+
+---
+
+### Image Compression
+- PSNR (Peak Signal-to-Noise Ratio)
+- Compression Ratio
+- Visual Artifacts (blocking effects)
+- Trade-off between image quality and compression efficiency
+
+---
+
+### Video Compression
+- Compression Ratio
+- Average PSNR across frames
+- Estimated Bit Rate
+- Final Compressed Data Size
+- Trade-off between quality, efficiency, and processing time
+
+All experimental results and analyses are automatically saved in the `results/` directory.
 
 ---
 
@@ -83,7 +135,21 @@ All evaluations are performed on text-based datasets.
    ```bash
    python main.py
    ```
-4. View the results in the terminal or inside the `results/` folder
+4. Select the compression theme:
+ - Text Compression
+ - Image Compression
+ - Video Compression
+5. View results and analysis inside the results/ directory
+Progress bars are displayed during execution to visualize long-running compression processes.
+
+---
+
+## Notes & Limitations
+
+* This project prioritizes clarity and correctness over execution speed
+* Implementations are not optimized for real-time performance
+* Video experiments are conducted on short clips due to computational constraints
+* No industrial compression codecs (e.g., H.264, JPEG libraries) are used
 
 ---
 
@@ -100,18 +166,9 @@ This project was developed collaboratively by a group of four students:
 
 ---
 
-## Notes
-
-* This project is intended for **academic purposes only**.
-* All algorithms are implemented from scratch for learning objectives.
-* No external compression libraries are used for core implementations.
-
----
-
 ## License
 
-This project is created as part of a university assignment. Licensing is optional and may be added if the repository is made public.
-
----
+This project is created for academic purposes only.
+An open-source license (e.g., MIT License) may be added if the repository is made public.
 
 © 2025 Coding and Compression Final Project
