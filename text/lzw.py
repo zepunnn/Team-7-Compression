@@ -1,32 +1,48 @@
+from utils_progress import progress
+
+
 def lzw_encode(text):
+    # Initialize dictionary with single characters
     dictionary = {chr(i): i for i in range(256)}
-    code = 256
+    dict_size = 256
+
     w = ""
     result = []
 
-    for c in text:
+    for c in progress(text, "LZW Encoding", "char"):
         wc = w + c
         if wc in dictionary:
             w = wc
         else:
+            # w is guaranteed to be in dictionary
             result.append(dictionary[w])
-            dictionary[wc] = code
-            code += 1
+            dictionary[wc] = dict_size
+            dict_size += 1
             w = c
+
     if w:
         result.append(dictionary[w])
+
     return result
 
-def lzw_decode(encoded):
-    dictionary = {i: chr(i) for i in range(256)}
-    code = 256
-    w = chr(encoded[0])
-    result = [w]
 
-    for k in encoded[1:]:
-        entry = dictionary.get(k, w + w[0])
-        result.append(entry)
-        dictionary[code] = w + entry[0]
-        code += 1
+def lzw_decode(codes):
+    dictionary = {i: chr(i) for i in range(256)}
+    dict_size = 256
+
+    w = dictionary[codes[0]]
+    result = w
+
+    for k in progress(codes[1:], "LZW Decoding", "code"):
+        if k in dictionary:
+            entry = dictionary[k]
+        else:
+            # Special LZW case
+            entry = w + w[0]
+
+        result += entry
+        dictionary[dict_size] = w + entry[0]
+        dict_size += 1
         w = entry
-    return "".join(result)
+
+    return result

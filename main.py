@@ -1,25 +1,34 @@
 import os
+import time
 import cv2
 
 from utils import entropy, psnr
 from utils_epub import read_epub_text
 from utils_text import normalize_text
-from utils_result import ensure_dir, write_log, timestamp
+from utils_result import (
+    ensure_dir,
+    write_log,
+    write_analysis,
+    timestamp
+)
 
-# Text
+# ===== TEXT =====
 from text.huffman import huffman_encode, huffman_decode
 from text.lzw import lzw_encode, lzw_decode
 
-# Image
+# ===== IMAGE =====
 from image.dct_image import compress_image, decompress_image
 
-# Video
-from video.video_compression import compress_video
+# ===== VIDEO =====
+from video.video_compression import (
+    compress_video,
+    reconstruct_frames,
+    calculate_psnr_frames
+)
 
-
-# ===============================
-# TEMA 1 – TEXT
-# ===============================
+# ======================================================
+# TEXT COMPRESSION
+# ======================================================
 def text_mode():
     path = input("Enter text file path (.txt / .epub): ").strip()
     if not os.path.exists(path):
@@ -28,47 +37,71 @@ def text_mode():
 
     ensure_dir("results/text")
 
+    # Load text
     if path.lower().endswith(".epub"):
-        print("📘 EPUB detected. Extracting text...")
         text = read_epub_text(path)
     else:
-        text = open(path, encoding="utf-8", errors="ignore").read()
+        with open(path, encoding="utf-8", errors="ignore") as f:
+            text = f.read()
 
+    original_size = len(text.encode("utf-8"))
     ent = entropy(text)
+
     text_norm = normalize_text(text)
 
     # Huffman
+    t0 = time.time()
     encoded, tree = huffman_encode(text_norm)
-    decoded = huffman_decode(encoded, tree)
+    enc_time = time.time() - t0
 
+    t0 = time.time()
+    decoded = huffman_decode(encoded, tree)
+    dec_time = time.time() - t0
+
+    compressed_size = max(1, len(encoded) // 8)
+    ratio = original_size / compressed_size
+
+    # Save compressed
     with open("results/text/huffman.bin", "w") as f:
         f.write(encoded)
 
-    # LZW
+    # LZW (backup / learning)
     lzw_encoded = lzw_encode(text_norm)
-    lzw_decoded = lzw_decode(lzw_encoded)
-
     with open("results/text/lzw.txt", "w") as f:
         f.write(" ".join(map(str, lzw_encoded)))
 
-    log = (
-        f"[{timestamp()}]\n"
-        f"Dataset: {path}\n"
-        f"Entropy: {ent:.4f}\n"
-        f"Huffman size: {len(encoded)//8} bytes\n"
-        f"LZW codes: {len(lzw_encoded)}\n"
-        f"Huffman OK: {decoded == text_norm}\n"
-        f"LZW OK: {lzw_decoded == text_norm}\n"
-        f"-------------------------"
+    # Log
+    write_log(
+        "results/text/log.txt",
+        f"[{timestamp()}] Dataset={path} Ratio={ratio:.2f}"
     )
-    write_log("results/text/log.txt", log)
 
-    print("✅ Text results saved to results/text/")
+    # Analysis
+    analysis = f"""
+TEXT COMPRESSION ANALYSIS
+Dataset                 : {path}
+
+Source Entropy           : {ent:.4f}
+Original File Size       : {original_size} bytes
+Compressed File Size     : {compressed_size} bytes
+Compression Ratio        : {ratio:.2f}
+
+Encoding Time            : {enc_time:.4f} seconds
+Decoding Time            : {dec_time:.4f} seconds
+
+Trade-off Analysis:
+Lossless compression preserves text integrity while reducing
+file size. Higher compression efficiency increases computational
+overhead during encoding and decoding.
+"""
+    write_analysis("results/text/analysis.txt", analysis.strip())
+
+    print("✅ Text compression & analysis completed.")
 
 
-# ===============================
-# TEMA 2 – IMAGE
-# ===============================
+# ======================================================
+# IMAGE COMPRESSION
+# ======================================================
 def image_mode():
     path = input("Enter image path (.png / .jpg): ").strip()
     if not os.path.exists(path):
@@ -77,30 +110,49 @@ def image_mode():
 
     ensure_dir("results/image")
 
+    original = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+    original_size = os.path.getsize(path)
+
+    t0 = time.time()
     blocks, padded_shape, original_shape = compress_image(path)
     reconstructed = decompress_image(blocks, padded_shape, original_shape)
-
-    original = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-    value = psnr(original, reconstructed)
+    proc_time = time.time() - t0
 
     cv2.imwrite("results/image/reconstructed.png", reconstructed)
+    compressed_size = os.path.getsize("results/image/reconstructed.png")
 
-    log = (
-        f"[{timestamp()}]\n"
-        f"Dataset: {path}\n"
-        f"Original shape: {original.shape}\n"
-        f"DCT blocks: {len(blocks)}\n"
-        f"PSNR: {value:.2f} dB\n"
-        f"-------------------------"
+    ratio = original_size / compressed_size
+    value = psnr(original, reconstructed)
+
+    write_log(
+        "results/image/log.txt",
+        f"[{timestamp()}] Dataset={path} PSNR={value:.2f}"
     )
-    write_log("results/image/log.txt", log)
 
-    print("✅ Image results saved to results/image/")
+    analysis = f"""
+IMAGE COMPRESSION ANALYSIS
+Dataset                 : {path}
+
+PSNR                     : {value:.2f} dB
+Original File Size       : {original_size} bytes
+Compressed File Size     : {compressed_size} bytes
+Compression Ratio        : {ratio:.2f}
+
+Trade-off Analysis:
+Block-based DCT reduces spatial redundancy but may introduce
+blocking artifacts, especially in high-frequency regions.
+
+Visual Artifact:
+Visible block boundaries may appear after reconstruction.
+"""
+    write_analysis("results/image/analysis.txt", analysis.strip())
+
+    print("✅ Image compression & analysis completed.")
 
 
-# ===============================
-# TEMA 3 – VIDEO
-# ===============================
+# ======================================================
+# VIDEO COMPRESSION
+# ======================================================
 def video_mode():
     path = input("Enter video path (.mp4): ").strip()
     if not os.path.exists(path):
@@ -109,23 +161,55 @@ def video_mode():
 
     ensure_dir("results/video")
 
-    frames = compress_video(path)
+    original_size = os.path.getsize(path)
 
-    log = (
-        f"[{timestamp()}]\n"
-        f"Dataset: {path}\n"
-        f"Frames processed: {len(frames)}\n"
-        f"Method: Frame-based DCT (grayscale)\n"
-        f"-------------------------"
+    t0 = time.time()
+    dct_frames, original_frames = compress_video(path)
+    reconstructed_frames = reconstruct_frames(dct_frames)
+    proc_time = time.time() - t0
+
+    compressed_size = sum(
+    sum(block.nbytes for block in blocks)
+    for blocks, _ in dct_frames
     )
-    write_log("results/video/log.txt", log)
+    ratio = original_size / compressed_size
 
-    print("✅ Video results saved to results/video/")
+    avg_psnr = calculate_psnr_frames(original_frames, reconstructed_frames)
+
+    fps = 30
+    duration = len(dct_frames) / fps
+    bitrate = (compressed_size * 8) / duration
+
+    write_log(
+        "results/video/log.txt",
+        f"[{timestamp()}] Dataset={path} PSNR={avg_psnr:.2f}"
+    )
+
+    analysis = f"""
+VIDEO COMPRESSION ANALYSIS
+Dataset                 : {path}
+
+Frames Processed         : {len(dct_frames)}
+Original File Size       : {original_size} bytes
+Compressed File Size     : {compressed_size} bytes
+Compression Ratio        : {ratio:.2f}
+
+Average PSNR (Frames)    : {avg_psnr:.2f} dB
+Estimated Bit Rate       : {bitrate:.2f} bps
+
+Trade-off Analysis:
+Frame-based transform compression removes spatial redundancy
+but lacks temporal motion compensation, resulting in lower
+efficiency compared to modern video codecs.
+"""
+    write_analysis("results/video/analysis.txt", analysis.strip())
+
+    print("✅ Video compression & analysis completed.")
 
 
-# ===============================
-# MAIN
-# ===============================
+# ======================================================
+# MAIN MENU
+# ======================================================
 def main():
     print("\n=== Coding & Compression Final Project ===")
     print("1. Text Compression")

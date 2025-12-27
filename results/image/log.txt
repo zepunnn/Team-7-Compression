@@ -10,3 +10,4 @@ Original shape: (924, 1125)
 DCT blocks: 16356
 PSNR: 147.46 dB
 -------------------------
+[2025-12-27 20:41:10] Dataset=dataset/image1.jpg PSNR=51.19

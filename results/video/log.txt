@@ -1,0 +1,6 @@
+[2025-12-27 19:52:48]
+Dataset: dataset/malumalu.mp4
+Frames processed: 30
+Method: Frame-based DCT (grayscale)
+-------------------------
+[2025-12-27 20:28:50] Dataset=dataset/malumalu.mp4 PSNR=51.49

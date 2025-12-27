@@ -1,0 +1,15 @@
+TEXT COMPRESSION ANALYSIS
+Dataset                 : dataset/pg11-images-3.epub
+
+Source Entropy           : 4.5763
+Original File Size       : 170110 bytes
+Compressed File Size     : 90178 bytes
+Compression Ratio        : 1.89
+
+Encoding Time            : 0.0464 seconds
+Decoding Time            : 0.1324 seconds
+
+Trade-off Analysis:
+Lossless compression preserves text integrity while reducing
+file size. Higher compression efficiency increases computational
+overhead during encoding and decoding.

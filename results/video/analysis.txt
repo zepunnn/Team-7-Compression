@@ -1,0 +1,15 @@
+VIDEO COMPRESSION ANALYSIS
+Dataset                 : dataset/malumalu.mp4
+
+Frames Processed         : 2736
+Original File Size       : 21660710 bytes
+Compressed File Size     : 10085990400 bytes
+Compression Ratio        : 0.00
+
+Average PSNR (Frames)    : 51.49 dB
+Estimated Bit Rate       : 884736000.00 bps
+
+Trade-off Analysis:
+Frame-based transform compression removes spatial redundancy
+but lacks temporal motion compensation, resulting in lower
+efficiency compared to modern video codecs.

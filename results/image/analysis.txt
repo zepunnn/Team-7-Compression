@@ -1,0 +1,14 @@
+IMAGE COMPRESSION ANALYSIS
+Dataset                 : dataset/image1.jpg
+
+PSNR                     : 51.19 dB
+Original File Size       : 666903 bytes
+Compressed File Size     : 2545567 bytes
+Compression Ratio        : 0.26
+
+Trade-off Analysis:
+Block-based DCT reduces spatial redundancy but may introduce
+blocking artifacts, especially in high-frequency regions.
+
+Visual Artifact:
+Visible block boundaries may appear after reconstruction.
