@@ -4,7 +4,7 @@ import cv2
 from utils import entropy, psnr
 from utils_epub import read_epub_text
 from utils_text import normalize_text
-from utils_results import ensure_dir, write_log, timestamp
+from utils_result import ensure_dir, write_log, timestamp
 
 # Text
 from text.huffman import huffman_encode, huffman_decode

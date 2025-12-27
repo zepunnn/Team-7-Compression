@@ -1,0 +1,12 @@
+[2025-12-27 12:50:03]
+Dataset: dataset/image1.jpg
+Original shape: (1844, 3278)
+DCT blocks: 94710
+PSNR: 147.91 dB
+-------------------------
+[2025-12-27 12:50:42]
+Dataset: dataset/image2.jpg
+Original shape: (924, 1125)
+DCT blocks: 16356
+PSNR: 147.46 dB
+-------------------------
