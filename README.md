@@ -32,15 +32,25 @@ Each method supports both **encoding** and **decoding** to ensure lossless recon
 ## Project Structure
 
 ```
-compression-project/
+Team-7-Compression/
 │
-├── main.py            # Main execution script
-├── huffman.py         # Huffman coding implementation
-├── lzw.py             # LZW compression implementation
-├── shannon_fano.py    # Shannon-Fano coding (optional)
-├── utils.py           # Helper functions
-├── dataset/           # Text datasets
-└── results/           # Compression results and logs
+├── utils.py
+├── main.py
+│
+├── text/
+│   ├── huffman.py
+│   ├── lzw.py
+│
+├── image/
+│   ├── dct_image.py
+│
+├── video/
+│   ├── video_compression.py
+│
+├── dataset/
+│   ├── text.txt
+│   ├── image.png
+│   └── video.mp4
 ```
 
 ---
